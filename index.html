@@ -15,7 +15,8 @@
       padding-left: 80px;
       padding-right: 80px;
       /*  background: #f1f1f1;  */
-      background: #C2BFB0;
+      /* background: #C2BFB0; */
+      background: #F0F8FF;
     }
 
     /* Header/Blog Title */
@@ -545,6 +546,59 @@
         <p><a href="https://owasp.org/www-community/attacks/xss/">https://owasp.org/www-community/attacks/xss/</a></p>
         <p><a href="https://owasp.org/www-community/attacks/xss/">https://owasp.org/www-community/attacks/xss/</a></p>
 
+        <h3>🔐 What is the SameSite Flag?</h3>
+        <p>The SameSite flag is a security feature that tells your browser when to include cookies in requests made from other websites. By restricting cross-site cookie
+          transmission, it protects your application from CSRF attacks and reduces the risk of sensitive data leakage to third-party sites.</p>
+        <h3>⚠️ Impact if SameSite is NOT Implemented</h3>
+        <p>If the SameSite flag is missing or incorrectly configured:</p>
+        <p>1. The application becomes vulnerable to CSRF attacks, where attackers can trick users into performing unintended 
+          actions (like changing passwords, making purchases, etc.).</p>
+        <p>2. Cookies (especially session tokens) may be exposed in cross-site requests.</p>
+        <p>3. Reduces compliance with modern browser security requirements — Chrome and others now apply SameSite=Lax by default if unspecified.</p>
+        <h3>🛠️ Remediation of the Issue</h3>
+        <p>Set the SameSite flag explicitly for all cookies — particularly authentication and session cookies.</p>
+        <pre>
+          Set-Cookie: sessionId=abc123; Secure; HttpOnly; SameSite=Strict
+        </pre>
+        <p>Ensures cookies are only sent over HTTPS (Secure)</p>
+        <p>Prevents access from JavaScript (HttpOnly)</p>
+        <p>Blocks cross-site requests (SameSite=Strict)</p>
+        <h3>⚛️ Implementing SameSite in a React + Node.js Application</h3>
+        <p>React runs on the client side, so cookie flags are mainly configured on the server side (Node.js / Express).</p>
+        <h2>🧠 Backend (Node.js + Express) Example:</h2>
+        <pre>
+          import express from 'express';
+          import session from 'express-session';
+          const app = express();
+
+            app.use(session({
+            name: 'sessionId',
+            secret: 'yourSecretKey',
+            resave: false,
+            saveUninitialized: false,
+            cookie: {
+              httpOnly: true,          // Prevents JS access
+              secure: true,            // Ensures HTTPS only
+              sameSite: 'strict',      // 'lax' or 'none' as needed
+              maxAge: 1000 * 60 * 60,  // 1 hour
+            }
+          }));
+
+          app.get('/', (req, res) => {
+          res.send('Session cookie set with SameSite flag');
+          });
+          app.listen(3000, () => console.log('Server running on port 3000'));
+        </pre>
+        <h2>🖥️ Frontend (React)</h2>
+        <p>React itself doesn’t control cookie flags, but when you make requests to your backend (using axios, fetch, etc.), ensure cookies are included:</p>
+        <pre>
+          import axios from 'axios';
+          axios.defaults.withCredentials = true;
+          axios.get('https://yourapi.com', { withCredentials: true })
+          .then(res => console.log(res.data))
+          .catch(err => console.error(err));
+        </pre>
+        <p>✅ Important: If you use SameSite=None, you must also set Secure: true and serve the site over HTTPS.</p>
       </div>
 
       <div class="card">
